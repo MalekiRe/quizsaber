@@ -1,0 +1,89 @@
+[package]
+name = "quizsaber"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["lib", "cdylib"]
+
+[dependencies]
+stereokit = {path = "../../IdeaProjects/stereokit-rs2", features = ["linux-egl"]}
+glam = {version = "0.22.0", features = ["mint"]}
+prisma = "0.1.1"
+anyhow = "1.0.66"
+rand = {version = "0.8.5", features = ["std", "alloc"]}
+
+[target.'cfg(target_os = "android")'.dependencies]
+ndk-glue = {version = "0.6.2", features = ["logger", "android_logger"]}
+
+[package.metadata.android]
+apk_label = "Hotham Simple Scene Example"
+fullscreen = true
+runtime_libs = "./common_lib"
+target_sdk_version = 29
+
+[package.metadata.android.application]
+debuggable = true
+label = "Hotham Simple Scene Example"
+theme = "@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen"
+
+[[package.metadata.android.application.meta_data]]
+name = "com.oculus.handtracking.version"
+value = "V2.0"
+
+
+#[package.metadata.android.application.activity]
+#config_changes = "screenSize|screenLayout|orientation|keyboardHidden|keyboard|navigation|uiMode"
+#launch_mode = "singleTask"
+#orientation = "landscape"
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.INTERNET"
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.access_network_state"
+
+[[package.metadata.android.application.meta_data]]
+name = "com.oculus.supportedDevices"
+value = "quest|quest2"
+
+[[package.metadata.android.application.meta_data]]
+name = "com.oculus.intent.category.VR"
+value = "vr_only"
+
+[[package.metadata.android.application.activity.intent_filter]]
+actions = ["android.intent.action.MAIN"]
+categories = ["com.oculus.intent.category.VR", "android.intent.category.LAUNCHER"]
+
+[[package.metadata.android.application.activity.meta_data]]
+name = "com.oculus.vr.focusaware"
+value = "true"
+
+[[package.metadata.android.uses_feature]]
+name = "android.hardware.vulkan.level"
+required = true
+version = 1
+
+[[package.metadata.android.uses_feature]]
+name = "android.hardware.vr.headtracking"
+required = true
+version = 1
+
+[[package.metadata.android.uses_feature]]
+name = "oculus.software.handtracking"
+required = true
+version = 1
+
+[[package.metadata.android.uses_permission]]
+name = "com.oculus.permission.HAND_TRACKING"
+required = true
+version = 1
+
+[package.metadata.android.signing.release]
+path = "./hotham_examples.keystore"
+keystore_password = "chomsky-vigilant-spa"
+
+#[package.metadata.android.sdk]
+#min_sdk_version = 24
