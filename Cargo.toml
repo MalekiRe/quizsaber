@@ -9,11 +9,15 @@ edition = "2021"
 crate-type = ["lib", "cdylib"]
 
 [dependencies]
-stereokit = {path = "../../IdeaProjects/stereokit-rs2", features = ["linux-egl"]}
-glam = {version = "0.22.0", features = ["mint"]}
+stereokit = {path = "../../IdeaProjects/stereokit-rs2", features = ["high-level"]}
+#stereokit = "0.7.0"
+glam = {version = "0.22.0", features = ["mint", "num-traits"]}
 prisma = "0.1.1"
 anyhow = "1.0.66"
 rand = {version = "0.8.5", features = ["std", "alloc"]}
+mint = {version = "0.5.1"}
+#cgmath = {version = "0.18.0", features = ["mint"]}
+#collision = "0.20.1"
 
 [target.'cfg(target_os = "android")'.dependencies]
 ndk-glue = {version = "0.6.2", features = ["logger", "android_logger"]}
