@@ -1,6 +1,18 @@
-use std::ops::{Deref, DerefMut};
+use std::ops::{Add, Deref, DerefMut};
+use anyhow::Context;
+use glam::{Mat4, Vec3, Vec3Swizzles};
+use prisma::Rgb;
 use rand::prelude::SliceRandom;
 use rand::{thread_rng};
+use stereokit::{high_level, StereoKit};
+use stereokit::font::Font;
+use stereokit::high_level::math_traits::{MatrixTrait, PosTrait, RotationTrait, ScaleTrait};
+use stereokit::lifecycle::DrawContext;
+use stereokit::material::Material;
+use stereokit::mesh::Mesh;
+use stereokit::text::{TextFit, TextStyle};
+use stereokit::values::Color128;
+use anyhow::Result;
 
 #[derive(Debug, Clone)]
 pub struct Term(pub String);
@@ -73,5 +85,82 @@ impl IntoRand<Option<(Card, Card, Card, Card, Card)>> for Deck {
               things.get(3)?.clone(),
               things.get(4)?.clone(),
         ))
+    }
+}
+pub struct FlashCard {
+    pub model: high_level::model::Model,
+    pub text: high_level::text::Text,
+    card_mesh: Mesh,
+}
+impl FlashCard {
+    pub fn new(sk: &StereoKit, material: &Material, text: &str, char_height: f32) -> Result<Self> {
+        let card_mesh = Mesh::gen_cube(sk, [1.0, 1.0, 1.0], 1).context("missing")?;
+        let mut model = high_level::model::Model::from_mesh(sk, &card_mesh, material)?;
+        model.tint.set_color(Rgb::new(0.7, 0.7, 0.7));
+        let mut text = high_level::text::Text::new(sk, text, [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [1.0, 1.0, 1.0]);
+        //text.text_fit = TextFit::Clip;
+        text.text_fit = TextFit::Wrap;
+        text.text_style = TextStyle::new(sk, Font::default(sk), char_height, Color128::new(Rgb::default(), 1.0));
+        let mut card = FlashCard {
+            model,
+            text,
+            card_mesh
+        };
+        card.set_scale_vec([1.0, 1.0, 0.2]);
+        card.sync_model_text_matrix();
+        Ok(card)
+    }
+    pub fn draw(&self, ctx: &DrawContext) {
+        self.model.draw(ctx);
+        self.text.draw_in(ctx);
+    }
+    fn sync_model_text_matrix(&mut self) {
+        let new_matrix = self.model.get_matrix().mul_mat4(&Mat4::from_translation(Vec3::new(0.0, 0.0, -0.501)));
+        self.text.set_matrix(new_matrix);
+    }
+}
+
+impl PosTrait for FlashCard {
+    fn get_pos_vec(&self) -> Vec3 {
+        self.model.get_pos_vec()
+    }
+
+    fn set_pos_vec(&mut self, pos: impl Into<stereokit::values::Vec3>) {
+        self.model.set_pos_vec(pos.into().clone());
+        self.sync_model_text_matrix();
+    }
+
+    fn translate_vec(&mut self, translation: impl Into<stereokit::values::Vec3>) {
+        self.set_pos_vec(glam::Vec3::from(translation.into()).add(self.get_pos_vec()));
+    }
+}
+impl RotationTrait for FlashCard {
+    fn get_rotation_vec(&self) -> Vec3 {
+        self.model.get_rotation_vec()
+    }
+
+    fn set_rotation_vec(&mut self, rotation: impl Into<stereokit::values::Vec3>) {
+        let rotation = rotation.into();
+        self.model.set_rotation_vec(rotation.clone());
+        self.sync_model_text_matrix();
+    }
+
+    fn rotate_vec(&mut self, rotation: impl Into<stereokit::values::Vec3>) {
+        self.set_rotation_vec(glam::Vec3::from(rotation.into()).add(self.get_rotation_vec()))
+    }
+}
+impl ScaleTrait for FlashCard {
+    fn get_scale_vec(&self) -> Vec3 {
+        self.model.get_scale_vec()
+    }
+
+    fn set_scale_vec(&mut self, scale: impl Into<stereokit::values::Vec3>) {
+        self.model.set_scale_vec(scale);
+        self.text.size = self.model.get_scale_vec().xy();
+    }
+
+    fn scale_vec(&mut self, scale: impl Into<stereokit::values::Vec3>) {
+        self.model.scale_vec(scale);
+        self.text.size = self.model.get_scale_vec().xy();
     }
 }
