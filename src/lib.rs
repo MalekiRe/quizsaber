@@ -1,5 +1,8 @@
 mod parser;
 mod flashcard;
+mod main_game_loop;
+mod misc_traits;
+mod main_menu;
 
 use std::ops::{Add, Mul, Neg};
 use glam::{Mat4, Quat, Vec2, Vec3, vec3, Vec3Swizzles};
@@ -29,60 +32,108 @@ use stereokit::lifecycle::DrawContext;
 use stereokit::pose::Pose;
 use stereokit::shader::Shader;
 use stereokit::text::{TextAlign, TextFit, TextStyle};
+use stereokit::ui::{MoveType, WindowType};
 use stereokit::values::{Color128, SKMatrix};
 use crate::flashcard::{Card, FlashCard, IntoRand};
+use crate::main_game_loop::MainGameLoop;
+use crate::main_menu::{MainMenuWindow};
+use crate::misc_traits::{GameState, SKLoop};
 use crate::parser::TEST_FILE;
 
 
-
 pub fn my_func() -> Result<()> {
-    println!("Hello, world!");
-    let right_saber = include_bytes!("../resources/saber1.glb");
-    let left_saber = include_bytes!("../resources/saber2.glb");
-    let flash_cards = parser::parse(TEST_FILE);
-    let rand_cards: Vec<Card> = flash_cards.choose_num(4);
-
-    // println!("random_cards: {:?}", rand_cards);
-    let mut sk = Settings::default().init().unwrap();
-    let cube_material = Material::copy_from_id(&sk, DEFAULT_ID_MATERIAL).context("error")?;
-    let mut game_flash_cards = create_from_cards(&sk, &rand_cards, Vec3::new(-1.0, -1.0, -14.0), 2, 1.5)?;
-
-    let card_choice = rand_cards.choose(&mut thread_rng()).context("missing")?.clone();
-
-    let mut question_text = high_level::text::Text::new(&sk, card_choice.term.0.as_str(), [0.0, 0.0, -6.0], [0.0, 180.0, 0.0], Vec3::new(1.0, 1.0, 1.0));
-    question_text.size = Vec2::new(20.0, 6.0);
-    question_text.text_style = TextStyle::new(&sk, Font::default(&sk), 1.0, Color128::new(Rgb::default(), 1.0));
-    question_text.text_fit = TextFit::Wrap;
-
-    let mut right_saber = high_level::model::Model::from_memory(&sk, "right_saber.glb", right_saber, Some(&Shader::p_b_r(&sk)))?;
-    let mut left_saber = high_level::model::Model::from_memory(&sk, "left_saber.glb", left_saber, Some(&Shader::default(&sk)))?;
-
-    right_saber.set_collider(&sk, ColliderType::CapsuleCollider);
-    left_saber.set_collider(&sk, ColliderType::CapsuleCollider);
-
+    println!("Starting up QuizSaber!");
+    let sk = Settings::default().init().context("startup error")?;
+    let mut game_state = GameState::MainMenu;
+    let mut main_game_loop = MainGameLoop::create(&sk)?;
+    let mut main_menu = MainMenuWindow::create(&sk)?;
+    main_menu.set_settings_offset_matrix(main_game_loop.offset_hand_matrix);
     sk.run(|sk, ctx| {
-        question_text.draw_in(ctx);
-        println!("{:?}", right_saber.get_collider(sk).unwrap());
-        game_flash_cards.iter_mut().for_each(|card| {
-            if card.model.collider_intersects(&sk, &right_saber.get_collider(sk).unwrap())
-                || card.model.collider_intersects(&sk, &left_saber.get_collider(sk).unwrap()){
-                card.touched = true;
-                println!("intersecting!");
+        match game_state {
+            GameState::MainMenu => {
+                match main_menu.tick(sk, ctx).unwrap() {
+                    Some(changed_game_state) => game_state = changed_game_state,
+                    _ => (),
+                }
             }
-            if !card.touched {
-                card.draw(ctx);
-                card.translate(0.0, 0.0, 0.01);
+            GameState::MainGameLoop => {
+                match main_game_loop.tick(sk, ctx).unwrap() {
+                    Some(changed_game_state) => game_state = changed_game_state,
+                    _ => ()
+                }
             }
-        });
-        let right_hand = sk.input_hand(Right).palm;
-        let left_hand = sk.input_hand(Left).palm;
-        right_saber.set_matrix(Mat4::from(right_hand.as_matrix()));
-        left_saber.set_matrix(Mat4::from(left_hand.as_matrix()));
-        right_saber.draw(ctx);
-        left_saber.draw(ctx);
+        }
+        main_game_loop.offset_hand_matrix = main_menu.get_settings_offset_matrix().unwrap();
     }, |_| {});
     Ok(())
 }
+
+// pub fn my_func() -> Result<()> {
+//     println!("Hello, world!");
+//     let right_saber = include_bytes!("../resources/saber1.glb");
+//     let left_saber = include_bytes!("../resources/saber2.glb");
+//     let flash_cards = parser::parse(TEST_FILE);
+//     let rand_cards: Vec<Card> = flash_cards.choose_num(4);
+//
+//     // println!("random_cards: {:?}", rand_cards);
+//     let mut sk = Settings::default().init().unwrap();
+//     let cube_material = Material::copy_from_id(&sk, DEFAULT_ID_MATERIAL).context("error")?;
+//     let mut game_flash_cards = create_from_cards(&sk, &rand_cards, Vec3::new(-1.0, -1.0, -14.0), 2, 1.5)?;
+//
+//     let card_choice = rand_cards.choose(&mut thread_rng()).context("missing")?.clone();
+//
+//     let mut question_text = high_level::text::Text::new(&sk, card_choice.term.0.as_str(), [0.0, 0.0, -6.0], [0.0, 180.0, 0.0], Vec3::new(1.0, 1.0, 1.0));
+//     question_text.size = Vec2::new(20.0, 6.0);
+//     question_text.text_style = TextStyle::new(&sk, Font::default(&sk), 1.0, Color128::new(Rgb::default(), 1.0));
+//     question_text.text_fit = TextFit::Wrap;
+//
+//     let mut right_saber = high_level::model::Model::from_memory(&sk, "right_saber.glb", right_saber, Some(&Shader::p_b_r(&sk)))?;
+//     let mut left_saber = high_level::model::Model::from_memory(&sk, "left_saber.glb", left_saber, Some(&Shader::default(&sk)))?;
+//
+//     right_saber.set_collider(&sk, ColliderType::CapsuleCollider);
+//     left_saber.set_collider(&sk, ColliderType::CapsuleCollider);
+//
+//     let mut game_state = GameState::MainMenu;
+//     let mut main_menu_pos = Pose::new([0.0, 0.3, -0.3].into(), quat_from_angles(0.0, 180.0, 0.0).into());
+//     sk.run(|sk, ctx| {
+//         match game_state {
+//             GameState::MainMenu => {
+//                 ui::window::window(ctx, "QuizSaber", &mut main_menu_pos, Vec2::new(1.0, 1.0).into(), WindowType::WindowNormal, MoveType::MoveFaceUser, |ui| {
+//                     ui.push_text_style(TextStyle::new(sk, Font::default(sk), 0.04, Color128::new(Rgb::new(1.0, 1.0, 1.0), 1.0)));
+//                     if ui.button("Start") {
+//                         game_state = MainLoop
+//                     }
+//                     if ui.button("Credits") {
+//
+//                     }
+//                     ui.pop_text_style();
+//                 });
+//             }
+//             MainLoop => {
+//                 question_text.draw_in(ctx);
+//                 println!("{:?}", right_saber.get_collider(sk).unwrap());
+//                 game_flash_cards.iter_mut().for_each(|card| {
+//                     if card.model.collider_intersects(&sk, &right_saber.get_collider(sk).unwrap())
+//                         || card.model.collider_intersects(&sk, &left_saber.get_collider(sk).unwrap()){
+//                         card.touched = true;
+//                         println!("intersecting!");
+//                     }
+//                     if !card.touched {
+//                         card.draw(ctx);
+//                         card.translate(0.0, 0.0, 0.01);
+//                     }
+//                 });
+//                 let right_hand = sk.input_hand(Right).palm;
+//                 let left_hand = sk.input_hand(Left).palm;
+//                 right_saber.set_matrix(Mat4::from(right_hand.as_matrix()));
+//                 left_saber.set_matrix(Mat4::from(left_hand.as_matrix()));
+//                 right_saber.draw(ctx);
+//                 left_saber.draw(ctx);
+//             }
+//         }
+//     }, |_| {});
+//     Ok(())
+// }
 
 fn create_from_cards(sk: &StereoKit, cards: &Vec<Card>, mut corner: Vec3, row_len: i32, displacement: f32) -> Result<Vec<FlashCard>> {
     let cube_material = &Material::copy_from_id(sk, DEFAULT_ID_MATERIAL).context("error")?;
@@ -103,5 +154,4 @@ fn create_from_cards(sk: &StereoKit, cards: &Vec<Card>, mut corner: Vec3, row_le
         Ok(())
     })?;
     Ok(flash_cards)
-
 }
