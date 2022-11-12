@@ -13,6 +13,7 @@ use stereokit::mesh::Mesh;
 use stereokit::text::{TextFit, TextStyle};
 use stereokit::values::Color128;
 use anyhow::Result;
+use stereokit::sys::vind_t;
 
 #[derive(Debug, Clone)]
 pub struct Term(pub String);
@@ -40,7 +41,7 @@ impl DerefMut for Deck {
 }
 
 impl Deck {
-    fn choose_num(&self, num: usize) -> Vec<Card> {
+    pub fn choose_num(&self, num: usize) -> Vec<Card> {
         let deck = &self.0;
         deck.choose_multiple(&mut thread_rng(), num).map(|my_card| {
             my_card.clone()
@@ -90,6 +91,7 @@ impl IntoRand<Option<(Card, Card, Card, Card, Card)>> for Deck {
 pub struct FlashCard {
     pub model: high_level::model::Model,
     pub text: high_level::text::Text,
+    pub touched: bool,
     card_mesh: Mesh,
 }
 impl FlashCard {
@@ -104,9 +106,10 @@ impl FlashCard {
         let mut card = FlashCard {
             model,
             text,
-            card_mesh
+            card_mesh,
+            touched: false,
         };
-        card.set_scale_vec([1.0, 1.0, 0.2]);
+        card.set_scale_vec([0.8, 0.8, 0.2]);
         card.sync_model_text_matrix();
         Ok(card)
     }
