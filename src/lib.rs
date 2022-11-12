@@ -42,6 +42,7 @@ use crate::saber_game_loop::{FlashCardSaberStage, SaberOffsets};
 use crate::quiz_saber_stage::{QuizSaberStage, QuizSaberStageType};
 use crate::parser::TEST_FILE;
 use crate::stereokit_game::sk_loop::SkGameLoop;
+use crate::stereokit_game::stage::SkStage;
 
 
 pub fn my_func() -> Result<()> {
@@ -50,9 +51,9 @@ pub fn my_func() -> Result<()> {
     let mut saber_offsets = SaberOffsets::default();
     let mut saber_game_loop = FlashCardSaberStage::init(&sk, ())?;
     let mut main_menu = MainMenuWindow::init(&sk, ())?;
-    let mut stage = QuizSaberStage::from(QuizSaberStageType::MainMenu);
+    let mut stage = QuizSaberStage::new(QuizSaberStageType::MainMenu);
     sk.run(|sk, ctx| {
-        match stage.deref() {
+        match stage.get() {
             QuizSaberStageType::FlashCardSaberStage => saber_game_loop.tick(sk, ctx, (&mut stage, &mut saber_offsets)).unwrap(),
             QuizSaberStageType::MainMenu => main_menu.tick(sk, ctx, (&mut stage, &mut saber_offsets)).unwrap(),
         }

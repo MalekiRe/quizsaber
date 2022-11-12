@@ -4,6 +4,7 @@ use stereokit::text::TextAlign;
 use stereokit::ui::WindowContext;
 use crate::main_menu::{MainMenuStage, MainMenuStageType, new_ui_text_style};
 use crate::stereokit_game::sk_loop::SkGameLoop;
+use crate::stereokit_game::stage::SkStage;
 
 pub struct CreditsMenu {}
 impl SkGameLoop<(), (&WindowContext, &mut MainMenuStage)> for CreditsMenu {

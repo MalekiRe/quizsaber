@@ -6,6 +6,7 @@ use crate::main_menu::{MainMenuStage, MainMenuStageType, new_ui_text_style};
 use crate::quiz_saber_stage::QuizSaberStage;
 use crate::saber_game_loop::SaberOffsets;
 use crate::stereokit_game::sk_loop::SkGameLoop;
+use crate::stereokit_game::stage::SkStage;
 
 pub struct SettingsMenu {
     slider_val: f32

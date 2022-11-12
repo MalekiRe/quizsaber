@@ -18,6 +18,7 @@ use crate::main_menu::settings_menu::SettingsMenu;
 use crate::quiz_saber_stage::{QuizSaberStage, QuizSaberStageType};
 use crate::saber_game_loop::SaberOffsets;
 use crate::stereokit_game::sk_loop::SkGameLoop;
+use crate::stereokit_game::stage::SkStage;
 
 pub struct MainMenuWindow {
     pose: Pose,
@@ -41,7 +42,7 @@ impl SkGameLoop<(), (&mut QuizSaberStage, &mut SaberOffsets)> for MainMenuWindow
     fn tick(&mut self, sk: &StereoKit, ctx: &DrawContext, run_data: (&mut QuizSaberStage, &mut SaberOffsets)) -> anyhow::Result<()> {
         let (quiz_saber_stage, saber_offsets) = run_data;
         ui::window::try_window(ctx, "QuizSaber", &mut self.pose, [0.7, 0.7].into(), WindowType::WindowBody, MoveType::MoveNone, |ui| -> anyhow::Result<()> {
-            match self.main_menu_stage.deref() {
+            match self.main_menu_stage.get() {
                 MainMenuStageType::Main => self.main_menu.tick(sk, ctx, (&mut self.main_menu_stage, quiz_saber_stage, ui))?,
                 MainMenuStageType::Settings => self.settings_menu.tick(sk, ctx, (ui, &mut self.main_menu_stage, saber_offsets))?,
                 MainMenuStageType::Credits => self.credits_menu.tick(sk, ctx, (ui, &mut self.main_menu_stage))?,
@@ -62,18 +63,16 @@ enum MainMenuStageType {
     Credits,
 }
 struct MainMenuStage(MainMenuStageType);
-impl MainMenuStage {
-    pub fn set(&mut self, other: MainMenuStageType) {
-        self.0 = other;
+impl SkStage<MainMenuStageType> for MainMenuStage {
+    fn new(stage_type: MainMenuStageType) -> Self {
+        Self(stage_type)
     }
-    pub fn new(other: MainMenuStageType) -> Self {
-        Self(other)
-    }
-}
-impl Deref for MainMenuStage {
-    type Target = MainMenuStageType;
 
-    fn deref(&self) -> &Self::Target {
+    fn get(&self) -> &MainMenuStageType {
         &self.0
+    }
+
+    fn set(&mut self, stage_type: MainMenuStageType) {
+        self.0 = stage_type
     }
 }
