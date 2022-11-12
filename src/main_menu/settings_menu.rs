@@ -3,7 +3,7 @@ use stereokit::StereoKit;
 use stereokit::text::TextAlign;
 use stereokit::ui::{ConfirmMethod, WindowContext};
 use crate::main_menu::{MainMenuStage, MainMenuStageType, new_ui_text_style};
-use crate::misc_traits::QuizSaberStage;
+use crate::quiz_saber_stage::QuizSaberStage;
 use crate::saber_game_loop::SaberOffsets;
 use crate::stereokit_game::sk_loop::SkGameLoop;
 

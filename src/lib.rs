@@ -1,7 +1,7 @@
 mod parser;
 mod flashcard;
 mod saber_game_loop;
-mod misc_traits;
+mod quiz_saber_stage;
 mod popup_menu;
 mod stereokit_game;
 mod main_menu;
@@ -39,7 +39,7 @@ use stereokit::values::{Color128, SKMatrix};
 use crate::flashcard::{Card, FlashCard, IntoRand};
 use crate::main_menu::MainMenuWindow;
 use crate::saber_game_loop::{FlashCardSaberStage, SaberOffsets};
-use crate::misc_traits::{QuizSaberStage, QuizSaberStageType};
+use crate::quiz_saber_stage::{QuizSaberStage, QuizSaberStageType};
 use crate::parser::TEST_FILE;
 use crate::stereokit_game::sk_loop::SkGameLoop;
 

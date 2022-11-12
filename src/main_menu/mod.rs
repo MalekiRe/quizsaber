@@ -15,7 +15,7 @@ use stereokit::values::Color128;
 use crate::main_menu::credits_menu::CreditsMenu;
 use crate::main_menu::main_menu::MainMenu;
 use crate::main_menu::settings_menu::SettingsMenu;
-use crate::misc_traits::{QuizSaberStage, QuizSaberStageType};
+use crate::quiz_saber_stage::{QuizSaberStage, QuizSaberStageType};
 use crate::saber_game_loop::SaberOffsets;
 use crate::stereokit_game::sk_loop::SkGameLoop;
 

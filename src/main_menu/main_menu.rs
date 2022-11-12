@@ -2,7 +2,7 @@ use stereokit::lifecycle::DrawContext;
 use stereokit::StereoKit;
 use stereokit::ui::WindowContext;
 use crate::main_menu::{MainMenuStage, MainMenuStageType, new_ui_text_style};
-use crate::misc_traits::{QuizSaberStage, QuizSaberStageType};
+use crate::quiz_saber_stage::{QuizSaberStage, QuizSaberStageType};
 use crate::stereokit_game::sk_loop::SkGameLoop;
 
 pub struct MainMenu {
