@@ -18,18 +18,19 @@ impl UiLoop<MainMenuState> for MainMenu {
     }
 
     fn tick(&mut self, sk: &StereoKit, ctx: &DrawContext, ui: &WindowContext) -> anyhow::Result<Option<MainMenuState>> {
-        ui.push_text_style(new_ui_text_style(sk, 0.05));
-        if ui.button("Start") {
-            return Ok(Some(MainMenuState::GameState(GameState::MainGameLoop)));
-        }
-        if ui.button("Settings") {
-            return Ok(Some(MainMenuState::Settings));
-        }
-        if ui.button("Credits") {
-            return Ok(Some(MainMenuState::Credits));
-        }
-        ui.pop_text_style();
-        Ok(None)
+        let mut return_value = None;
+        ui.text_style(new_ui_text_style(sk, 0.05),  |ui| {
+            if ui.button("Start") {
+                return_value = Some(MainMenuState::GameState(GameState::MainGameLoop));
+            }
+            if ui.button("Settings") {
+                return_value = Some(MainMenuState::Settings);
+            }
+            if ui.button("Credits") {
+                return_value = Some(MainMenuState::Credits);
+            }
+        });
+        Ok(return_value)
     }
 }
 

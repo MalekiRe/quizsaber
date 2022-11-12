@@ -42,7 +42,6 @@ impl SKLoop<GameState> for MainGameLoop {
         let left_hand = sk.input_hand(Left).palm;
         self.right_saber.set_matrix(Mat4::from(right_hand.as_matrix()).mul(self.offset_hand_matrix));
         self.left_saber.set_matrix(Mat4::from(left_hand.as_matrix()).mul(self.offset_left_hand_matrix));
-        //self.left_saber.rotate(90.0, 0.0, 0.0);
         sk.input_hand_visible(Handed::Right, false);
         sk.input_hand_visible(Left, false);
         self.right_saber.draw(ctx);

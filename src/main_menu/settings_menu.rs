@@ -20,15 +20,16 @@ impl UiLoop<MainMenuState> for SettingsMenu {
     }
 
     fn tick(&mut self, sk: &StereoKit, ctx: &DrawContext, ui: &WindowContext) -> anyhow::Result<Option<MainMenuState>> {
-        ui.push_text_style(new_ui_text_style(sk, 0.05));
-        ui.text("Settings Menu", TextAlign::TopCenter);
-        ui.push_text_style(new_ui_text_style(sk, 0.03));
-        ui.slider("slider_test", &mut self.slider_val, 0.0, 10.0, 0.1, 0.1, ConfirmMethod::Push);
-        ui.push_text_style(new_ui_text_style(sk, 0.05));
-        if ui.button("Back") {
-            return Ok(Some(MainMenuState::MainState));
-        }
-        ui.pop_text_style();
-        Ok(None)
+        let mut return_value = None;
+        ui.text_style(new_ui_text_style(sk, 0.05),  |ui| {
+            ui.text("Settings Menu", TextAlign::TopCenter);
+            ui.text_style(new_ui_text_style(sk, 0.03),  |ui| {
+                ui.slider("slider_test", &mut self.slider_val, 0.0, 10.0, 0.1, 0.1, ConfirmMethod::Push);
+            });
+            if ui.button("Back") {
+                return_value = Some(MainMenuState::MainState);
+            }
+        });
+        Ok(return_value)
     }
 }

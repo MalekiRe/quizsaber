@@ -3,6 +3,8 @@ mod flashcard;
 mod main_game_loop;
 mod misc_traits;
 mod main_menu;
+mod popup_menu;
+mod stereokit_game;
 
 use std::ops::{Add, Mul, Neg};
 use glam::{Mat4, Quat, Vec2, Vec3, vec3, Vec3Swizzles};
