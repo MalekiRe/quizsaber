@@ -23,19 +23,24 @@ mint = {version = "0.5.1"}
 ndk-glue = {version = "0.6.2", features = ["logger", "android_logger"]}
 
 [package.metadata.android]
-apk_label = "Hotham Simple Scene Example"
+apk_label = "Quiz Saber"
 fullscreen = true
 runtime_libs = "./common_lib"
 target_sdk_version = 29
+assets = "./assets"
 
 [package.metadata.android.application]
 debuggable = true
-label = "Hotham Simple Scene Example"
+label = "Quiz Saber"
 theme = "@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen"
 
 [[package.metadata.android.application.meta_data]]
 name = "com.oculus.handtracking.version"
 value = "V2.0"
+
+[[package.metadata.android.application.meta_data]]
+name = "com.oculus.ossplash"
+value = "true"
 
 
 #[package.metadata.android.application.activity]

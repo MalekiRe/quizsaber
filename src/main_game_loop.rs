@@ -21,8 +21,8 @@ pub struct MainGameLoop {
 }
 impl SKLoop<GameState> for MainGameLoop {
     fn create(sk: &StereoKit) -> Result<Self> {
-        let right_saber = include_bytes!("../resources/saber1.glb");
-        let left_saber = include_bytes!("../resources/saber2.glb");
+        let right_saber = include_bytes!("../assets/saber1.glb");
+        let left_saber = include_bytes!("../assets/saber2.glb");
         let mut right_saber = high_level::model::Model::from_memory(&sk, "right_saber.glb", right_saber, Some(&Shader::p_b_r(&sk)))?;
         let mut left_saber = high_level::model::Model::from_memory(&sk, "left_saber.glb", left_saber, Some(&Shader::default(&sk)))?;
 
