@@ -2,7 +2,7 @@ use stereokit::high_level::quat_from_angles;
 use stereokit::lifecycle::DrawContext;
 use stereokit::pose::Pose;
 use stereokit::StereoKit;
-use crate::misc_traits::{GameState, SKLoop};
+use crate::misc_traits::{QuizSaberStageType, SKLoop};
 
 struct PopupMenu {
     pose: Pose

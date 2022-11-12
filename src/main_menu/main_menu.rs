@@ -1,36 +1,31 @@
-use prisma::Rgb;
 use stereokit::lifecycle::DrawContext;
-use stereokit::{StereoKit, ui};
-use stereokit::font::Font;
-use stereokit::high_level::quat_from_angles;
-use stereokit::pose::Pose;
-use stereokit::text::TextStyle;
-use stereokit::ui::{MoveType, WindowContext, WindowType};
-use stereokit::values::Color128;
-use crate::main_menu::{MainMenuState, new_ui_text_style};
-use crate::misc_traits::{GameState, SKLoop, UiLoop};
+use stereokit::StereoKit;
+use stereokit::ui::WindowContext;
+use crate::main_menu::{MainMenuStage, MainMenuStageType, new_ui_text_style};
+use crate::misc_traits::{QuizSaberStage, QuizSaberStageType};
+use crate::stereokit_game::sk_loop::SkGameLoop;
 
 pub struct MainMenu {
 }
-impl UiLoop<MainMenuState> for MainMenu {
-    fn create(sk: &StereoKit) -> anyhow::Result<Self> where Self: Sized {
-        Ok(Self {})
+
+impl SkGameLoop<(), (&mut MainMenuStage, &mut QuizSaberStage, &WindowContext)> for MainMenu {
+    fn init(sk: &StereoKit, init_data: ()) -> anyhow::Result<Self> where Self: Sized {
+        Ok(Self{})
     }
 
-    fn tick(&mut self, sk: &StereoKit, ctx: &DrawContext, ui: &WindowContext) -> anyhow::Result<Option<MainMenuState>> {
-        let mut return_value = None;
+    fn tick(&mut self, sk: &StereoKit, ctx: &DrawContext, run_data: (&mut MainMenuStage, &mut QuizSaberStage, &WindowContext)) -> anyhow::Result<()> {
+        let (main_menu_stage, quiz_saber_stage, ui) = run_data;
         ui.text_style(new_ui_text_style(sk, 0.05),  |ui| {
             if ui.button("Start") {
-                return_value = Some(MainMenuState::GameState(GameState::MainGameLoop));
+                quiz_saber_stage.set(QuizSaberStageType::FlashCardSaberStage);
             }
             if ui.button("Settings") {
-                return_value = Some(MainMenuState::Settings);
+                main_menu_stage.set(MainMenuStageType::Settings);
             }
             if ui.button("Credits") {
-                return_value = Some(MainMenuState::Credits);
+                main_menu_stage.set(MainMenuStageType::Credits);
             }
         });
-        Ok(return_value)
+        Ok(())
     }
 }
-

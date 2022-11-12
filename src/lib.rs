@@ -1,12 +1,12 @@
 mod parser;
 mod flashcard;
-mod main_game_loop;
+mod saber_game_loop;
 mod misc_traits;
-mod main_menu;
 mod popup_menu;
 mod stereokit_game;
+mod main_menu;
 
-use std::ops::{Add, Mul, Neg};
+use std::ops::{Add, Deref, Mul, Neg};
 use glam::{Mat4, Quat, Vec2, Vec3, vec3, Vec3Swizzles};
 use prisma::{Rgb, Rgba};
 use stereokit::material::{DEFAULT_ID_MATERIAL, Material};
@@ -37,35 +37,25 @@ use stereokit::text::{TextAlign, TextFit, TextStyle};
 use stereokit::ui::{MoveType, WindowType};
 use stereokit::values::{Color128, SKMatrix};
 use crate::flashcard::{Card, FlashCard, IntoRand};
-use crate::main_game_loop::MainGameLoop;
-use crate::main_menu::{MainMenuWindow};
-use crate::misc_traits::{GameState, SKLoop};
+use crate::main_menu::MainMenuWindow;
+use crate::saber_game_loop::{FlashCardSaberStage, SaberOffsets};
+use crate::misc_traits::{QuizSaberStage, QuizSaberStageType};
 use crate::parser::TEST_FILE;
+use crate::stereokit_game::sk_loop::SkGameLoop;
 
 
 pub fn my_func() -> Result<()> {
     println!("Starting up QuizSaber!");
     let sk = Settings::default().init().context("startup error")?;
-    let mut game_state = GameState::MainMenu;
-    let mut main_game_loop = MainGameLoop::create(&sk)?;
-    let mut main_menu = MainMenuWindow::create(&sk)?;
-    main_menu.set_settings_offset_matrix(main_game_loop.offset_hand_matrix);
+    let mut saber_offsets = SaberOffsets::default();
+    let mut saber_game_loop = FlashCardSaberStage::init(&sk, ())?;
+    let mut main_menu = MainMenuWindow::init(&sk, ())?;
+    let mut stage = QuizSaberStage::from(QuizSaberStageType::MainMenu);
     sk.run(|sk, ctx| {
-        match game_state {
-            GameState::MainMenu => {
-                match main_menu.tick(sk, ctx).unwrap() {
-                    Some(changed_game_state) => game_state = changed_game_state,
-                    _ => (),
-                }
-            }
-            GameState::MainGameLoop => {
-                match main_game_loop.tick(sk, ctx).unwrap() {
-                    Some(changed_game_state) => game_state = changed_game_state,
-                    _ => ()
-                }
-            }
+        match stage.deref() {
+            QuizSaberStageType::FlashCardSaberStage => saber_game_loop.tick(sk, ctx, (&mut stage, &mut saber_offsets)).unwrap(),
+            QuizSaberStageType::MainMenu => main_menu.tick(sk, ctx, (&mut stage, &mut saber_offsets)).unwrap(),
         }
-        main_game_loop.offset_hand_matrix = main_menu.get_settings_offset_matrix().unwrap();
     }, |_| {});
     Ok(())
 }
