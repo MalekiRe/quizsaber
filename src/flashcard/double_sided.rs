@@ -24,6 +24,14 @@ pub struct DoubleSidedFlashCard {
     text_back: Text,
     text_front: Text,
     reverse_button_sprite: Sprite,
+    rotation_state: RotationState,
+}
+
+enum RotationState {
+    RotatingBack,
+    RotatingFront,
+    Back,
+    Front,
 }
 
 impl DoubleSidedFlashCard {
@@ -35,6 +43,7 @@ impl DoubleSidedFlashCard {
             text_front: Text::from(sk, flash_card.front.clone()),
             text_back: Text::from(sk, flash_card.back.clone()),
             reverse_button_sprite: Sprite::from_file(sk, "./assets/Reverse.png", SpriteType::Single),
+            rotation_state: RotationState::Front
         };
         return_value.set_scale_vec([0.8, 0.8, 0.05]);
         return_value.sync_model_text_matrix();
@@ -60,13 +69,56 @@ impl DoubleSidedFlashCard {
 }
 impl SkDrawMut for DoubleSidedFlashCard {
     fn draw_mut(&mut self, sk: &StereoKit, ctx: &DrawContext) {
+        match self.rotation_state {
+            RotationState::RotatingBack => {
+                self.rotate(0.0, -10.0, 0.0);
+                if self.get_rotation().1 <= 0.0 {
+                    self.set_rotation(0.0, 0.0, 0.0);
+                    self.rotation_state = RotationState::Back
+                }
+            }
+            RotationState::RotatingFront => {
+                self.rotate(0.0, 10.0, 0.0);
+                if self.get_rotation().1 >= 180.0 {
+                    self.set_rotation(0.0, 180.0, 0.0);
+                    self.rotation_state = RotationState::Front
+                }
+            }
+            RotationState::Back => {}
+            RotationState::Front => {}
+        }
+
         self.model.draw(ctx);
         self.text_front.draw_in(ctx);
         self.text_back.draw_in(ctx);
         ui::window::window(ctx, "", &mut Pose::new(self.text_front.get_pos_vec().into(), quat_from_vec(self.text_front.get_rotation_vec()).clone().into()), self.text_front.size.clone().into(), WindowType::WindowEmpty, MoveType::MoveNone, |ui| {
-            ui.button("test");
+            //ui.button("test");
             ui.text_style(TextStyle::new(sk, Font::default(sk), 0.1, Rgba::new(Rgb::new(1.0, 1.0, 1.0), 1.0)), |ui| {
-                ui.button_image("", &self.reverse_button_sprite, ButtonLayout::Center);
+                if ui.button_image("", &self.reverse_button_sprite, ButtonLayout::Center) {
+                    match self.rotation_state {
+                        RotationState::RotatingBack | RotationState::Back => {
+                            self.rotation_state = RotationState::RotatingFront;
+                        }
+                        RotationState::RotatingFront | RotationState::Front => {
+                            self.rotation_state = RotationState::RotatingBack;
+                        }
+                    }
+                }
+            });
+        });
+        ui::window::window(ctx, "", &mut Pose::new(self.text_back.get_pos_vec().into(), quat_from_vec(self.text_back.get_rotation_vec()).clone().into()), self.text_back.size.clone().into(), WindowType::WindowEmpty, MoveType::MoveNone, |ui| {
+            //ui.button("test");
+            ui.text_style(TextStyle::new(sk, Font::default(sk), 0.1, Rgba::new(Rgb::new(1.0, 1.0, 1.0), 1.0)), |ui| {
+                if ui.button_image("", &self.reverse_button_sprite, ButtonLayout::Center) {
+                    match self.rotation_state {
+                        RotationState::RotatingBack | RotationState::Back => {
+                            self.rotation_state = RotationState::RotatingFront;
+                        }
+                        RotationState::RotatingFront | RotationState::Front => {
+                            self.rotation_state = RotationState::RotatingBack;
+                        }
+                    }
+                }
             });
         })
     }
