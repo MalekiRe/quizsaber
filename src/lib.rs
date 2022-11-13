@@ -1,10 +1,13 @@
 mod parser;
-mod flashcard;
 mod saber_game_loop;
 mod quiz_saber_stage;
 mod popup_menu;
 mod stereokit_game;
 mod main_menu;
+pub mod anki_parser;
+mod flashcard_1;
+mod flashcard;
+mod flashcard_mode;
 
 use std::ops::{Add, Deref, Mul, Neg};
 use glam::{Mat4, Quat, Vec2, Vec3, vec3, Vec3Swizzles};
@@ -13,7 +16,7 @@ use stereokit::material::{DEFAULT_ID_MATERIAL, Material};
 use stereokit::mesh::Mesh;
 use stereokit::model::Model;
 use stereokit::render::RenderLayer;
-use stereokit::{high_level, mesh, pose, Settings, StereoKit, ui};
+use stereokit::{high_level, material, mesh, pose, Settings, StereoKit, ui};
 use stereokit::high_level::math_traits::{MatrixTrait, PosTrait, RotationTrait, ScaleTrait};
 
 #[cfg_attr(target_os = "android", ndk_glue::main(backtrace = "on", logger(level = "debug", tag = "my-tag")))]
@@ -36,7 +39,8 @@ use stereokit::shader::Shader;
 use stereokit::text::{TextAlign, TextFit, TextStyle};
 use stereokit::ui::{MoveType, WindowType};
 use stereokit::values::{Color128, SKMatrix};
-use crate::flashcard::{Card, FlashCard, IntoRand};
+use crate::flashcard_mode::FlashCardMode;
+
 use crate::main_menu::MainMenuWindow;
 use crate::saber_game_loop::{FlashCardSaberStage, SaberOffsets};
 use crate::quiz_saber_stage::{QuizSaberStage, QuizSaberStageType};
@@ -48,14 +52,18 @@ use crate::stereokit_game::stage::SkStage;
 pub fn my_func() -> Result<()> {
     println!("Starting up QuizSaber!");
     let sk = Settings::default().init().context("startup error")?;
+
+
     let mut saber_offsets = SaberOffsets::default();
     let mut saber_game_loop = FlashCardSaberStage::init(&sk, ())?;
     let mut main_menu = MainMenuWindow::init(&sk, ())?;
     let mut stage = QuizSaberStage::new(QuizSaberStageType::MainMenu);
+    let mut flash_card_stage = FlashCardMode::init(&sk, ())?;
     sk.run(|sk, ctx| {
         match stage.get() {
             QuizSaberStageType::FlashCardSaberStage => saber_game_loop.tick(sk, ctx, (&mut stage, &mut saber_offsets)).unwrap(),
             QuizSaberStageType::MainMenu => main_menu.tick(sk, ctx, (&mut stage, &mut saber_offsets)).unwrap(),
+            QuizSaberStageType::FlashCardStage => flash_card_stage.tick(sk, ctx, ()).unwrap(),
         }
     }, |_| {});
     Ok(())
@@ -128,23 +136,23 @@ pub fn my_func() -> Result<()> {
 //     Ok(())
 // }
 
-fn create_from_cards(sk: &StereoKit, cards: &Vec<Card>, mut corner: Vec3, row_len: i32, displacement: f32) -> Result<Vec<FlashCard>> {
-    let cube_material = &Material::copy_from_id(sk, DEFAULT_ID_MATERIAL).context("error")?;
-    let mut flash_cards = Vec::new();
-    let mut current_row = 0;
-    cards.iter().try_for_each(|card| -> Result<()> {
-        let mut flash_card = FlashCard::new(sk, cube_material, card.definition.0.as_str(), 0.05)?;
-        flash_card.rotate(0.0, 180.0, 0.0);
-
-        if current_row >= row_len {
-            current_row = 0;
-            corner.y += displacement;
-        }
-
-        flash_card.set_pos_vec(corner.add(Vec3::new(displacement*current_row as f32, 0.0, 0.0)));
-        flash_cards.push(flash_card);
-        current_row += 1;
-        Ok(())
-    })?;
-    Ok(flash_cards)
-}
+// fn create_from_cards(sk: &StereoKit, cards: &Vec<Card>, mut corner: Vec3, row_len: i32, displacement: f32) -> Result<Vec<FlashCard>> {
+//     let cube_material = &Material::copy_from_id(sk, DEFAULT_ID_MATERIAL).context("error")?;
+//     let mut flash_cards = Vec::new();
+//     let mut current_row = 0;
+//     cards.iter().try_for_each(|card| -> Result<()> {
+//         let mut flash_card = FlashCard::new(sk, cube_material, card.definition.0.as_str(), 0.05)?;
+//         flash_card.rotate(0.0, 180.0, 0.0);
+//
+//         if current_row >= row_len {
+//             current_row = 0;
+//             corner.y += displacement;
+//         }
+//
+//         flash_card.set_pos_vec(corner.add(Vec3::new(displacement*current_row as f32, 0.0, 0.0)));
+//         flash_cards.push(flash_card);
+//         current_row += 1;
+//         Ok(())
+//     })?;
+//     Ok(flash_cards)
+// }

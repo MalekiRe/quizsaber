@@ -26,6 +26,9 @@ impl SkGameLoop<(), (&mut MainMenuStage, &mut QuizSaberStage, &WindowContext)> f
             if ui.button("Credits") {
                 main_menu_stage.set(MainMenuStageType::Credits);
             }
+            if ui.button("Flashcard Mode") {
+                quiz_saber_stage.set(QuizSaberStageType::FlashCardStage);
+            }
         });
         Ok(())
     }

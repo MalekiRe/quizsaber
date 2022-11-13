@@ -7,6 +7,7 @@ use crate::stereokit_game::stage::SkStage;
 
 pub enum QuizSaberStageType {
     FlashCardSaberStage,
+    FlashCardStage,
     MainMenu,
 }
 pub struct QuizSaberStage(QuizSaberStageType);

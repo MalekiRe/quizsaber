@@ -9,6 +9,8 @@ edition = "2021"
 crate-type = ["lib", "cdylib"]
 
 [dependencies]
+serde_json = "1.0.87"
+rusqlite = "0.28.0"
 stereokit = {path = "../../IdeaProjects/stereokit-rs2", features = ["high-level"]}
 #stereokit = "0.7.0"
 glam = {version = "0.22.0", features = ["mint", "num-traits"]}
