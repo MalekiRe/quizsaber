@@ -45,7 +45,7 @@ use crate::flashcard_mode::FlashCardMode;
 use crate::flashcard_system::FlashCardSystem;
 
 use crate::main_menu::MainMenuWindow;
-use crate::saber_game_loop::{FlashCardSaberStage, SaberOffsets};
+use crate::saber_game_loop::{SaberStage, SaberOffsets};
 use crate::quiz_saber_stage::{QuizSaberStage, QuizSaberStageType};
 use crate::parser::{parse, TEST_FILE};
 use crate::stereokit_game::sk_loop::SkGameLoop;
@@ -55,8 +55,11 @@ pub fn my_func() -> Result<()> {
     println!("Starting up QuizSaber!");
     let sk = Settings::default().init().context("startup error")?;
 
+    let saber_right = include_bytes!("../assets/saber1.glb");
+    let saber_left = include_bytes!("../assets/saber2.glb");
+
     let mut saber_offsets = SaberOffsets::default();
-    let mut saber_game_loop = FlashCardSaberStage::init(&sk, ())?;
+    let mut saber_game_loop = SaberStage::init(&sk, (saber_right, saber_left))?;
     let mut main_menu = MainMenuWindow::init(&sk, ())?;
     let mut stage = QuizSaberStage::new(QuizSaberStageType::MainMenu);
     let mut flash_card_stage = FlashCardMode::init(&sk, ())?;
@@ -70,7 +73,7 @@ pub fn my_func() -> Result<()> {
     sk.run(|sk, ctx| {
         match stage.get() {
             QuizSaberStageType::FlashCardSaberStage => saber_game_loop.tick(sk, ctx, (&mut stage, &mut saber_offsets)).unwrap(),
-            QuizSaberStageType::MainMenu => main_menu.tick(sk, ctx, (&mut stage, &mut saber_offsets)).unwrap(),
+            QuizSaberStageType::MainMenu => main_menu.tick(sk, ctx, (&mut stage, &mut saber_offsets, &mut saber_game_loop.right_saber, &mut saber_game_loop.left_saber)).unwrap(),
             QuizSaberStageType::FlashCardStage => flash_card_stage.tick(sk, ctx, (&mut flash_cards_data, index, &mut guess)).unwrap(),
         }
         let mut wrapper = IndexWrapper(index);
@@ -82,7 +85,6 @@ pub fn my_func() -> Result<()> {
 }
 
 struct IndexWrapper(usize);
-
 // pub fn my_func() -> Result<()> {
 //     println!("Hello, world!");
 //     let right_saber = include_bytes!("../resources/saber1.glb");
