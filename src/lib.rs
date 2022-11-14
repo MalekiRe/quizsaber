@@ -8,6 +8,7 @@ pub mod anki_parser;
 mod flashcard_1;
 mod flashcard;
 mod flashcard_mode;
+mod flashcard_system;
 
 use std::ops::{Add, Deref, Mul, Neg};
 use glam::{Mat4, Quat, Vec2, Vec3, vec3, Vec3Swizzles};
@@ -28,6 +29,7 @@ use anyhow::{Context, Result};
 use mint::{Quaternion, Vector3};
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
+use random_number::random;
 use stereokit::font::Font;
 use stereokit::high_level::collider::{Collider, ColliderType};
 use stereokit::high_level::quat_from_angles;
@@ -40,34 +42,46 @@ use stereokit::text::{TextAlign, TextFit, TextStyle};
 use stereokit::ui::{MoveType, WindowType};
 use stereokit::values::{Color128, SKMatrix};
 use crate::flashcard_mode::FlashCardMode;
+use crate::flashcard_system::FlashCardSystem;
 
 use crate::main_menu::MainMenuWindow;
 use crate::saber_game_loop::{FlashCardSaberStage, SaberOffsets};
 use crate::quiz_saber_stage::{QuizSaberStage, QuizSaberStageType};
-use crate::parser::TEST_FILE;
+use crate::parser::{parse, TEST_FILE};
 use crate::stereokit_game::sk_loop::SkGameLoop;
 use crate::stereokit_game::stage::SkStage;
-
 
 pub fn my_func() -> Result<()> {
     println!("Starting up QuizSaber!");
     let sk = Settings::default().init().context("startup error")?;
-
 
     let mut saber_offsets = SaberOffsets::default();
     let mut saber_game_loop = FlashCardSaberStage::init(&sk, ())?;
     let mut main_menu = MainMenuWindow::init(&sk, ())?;
     let mut stage = QuizSaberStage::new(QuizSaberStageType::MainMenu);
     let mut flash_card_stage = FlashCardMode::init(&sk, ())?;
+
+
+    let mut flashcard_system = FlashCardSystem::init(&sk, ())?;
+
+    let mut flash_cards_data = parse(TEST_FILE);
+    let mut index: usize = random!(0, flash_cards_data.len()-1);
+    let mut guess = None;
     sk.run(|sk, ctx| {
         match stage.get() {
             QuizSaberStageType::FlashCardSaberStage => saber_game_loop.tick(sk, ctx, (&mut stage, &mut saber_offsets)).unwrap(),
             QuizSaberStageType::MainMenu => main_menu.tick(sk, ctx, (&mut stage, &mut saber_offsets)).unwrap(),
-            QuizSaberStageType::FlashCardStage => flash_card_stage.tick(sk, ctx, ()).unwrap(),
+            QuizSaberStageType::FlashCardStage => flash_card_stage.tick(sk, ctx, (&mut flash_cards_data, index, &mut guess)).unwrap(),
         }
+        let mut wrapper = IndexWrapper(index);
+        flashcard_system.tick(&sk, &ctx, (&mut flash_cards_data, &mut guess, &mut wrapper)).unwrap();
+        index = wrapper.0;
+        guess = None;
     }, |_| {});
     Ok(())
 }
+
+struct IndexWrapper(usize);
 
 // pub fn my_func() -> Result<()> {
 //     println!("Hello, world!");
