@@ -9,6 +9,8 @@ mod flashcard_1;
 mod flashcard;
 mod flashcard_mode;
 mod flashcard_system;
+mod android_wrapper;
+mod config;
 
 use std::ops::{Add, Deref, Mul, Neg};
 use glam::{Mat4, Quat, Vec2, Vec3, vec3, Vec3Swizzles};
@@ -41,6 +43,7 @@ use stereokit::shader::Shader;
 use stereokit::text::{TextAlign, TextFit, TextStyle};
 use stereokit::ui::{MoveType, WindowType};
 use stereokit::values::{Color128, SKMatrix};
+use crate::config::ConfigFile;
 use crate::flashcard_mode::FlashCardMode;
 use crate::flashcard_system::FlashCardSystem;
 
@@ -58,7 +61,10 @@ pub fn my_func() -> Result<()> {
     let saber_right = include_bytes!("../assets/saber1.glb");
     let saber_left = include_bytes!("../assets/saber2.glb");
 
-    let mut saber_offsets = SaberOffsets::default();
+    let mut config_file = ConfigFile::get()?;
+    let mut saber_offsets = config_file.saber_offsets.clone();
+
+
     let mut saber_game_loop = SaberStage::init(&sk, (saber_right, saber_left))?;
     let mut main_menu = MainMenuWindow::init(&sk, ())?;
     let mut stage = QuizSaberStage::new(QuizSaberStageType::MainMenu);
@@ -70,6 +76,7 @@ pub fn my_func() -> Result<()> {
     let mut flash_cards_data = parse(TEST_FILE);
     let mut index: usize = random!(0, flash_cards_data.len()-1);
     let mut guess = None;
+    let mut save_inc = 0;
     sk.run(|sk, ctx| {
         match stage.get() {
             QuizSaberStageType::FlashCardSaberStage => saber_game_loop.tick(sk, ctx, (&mut stage, &mut saber_offsets)).unwrap(),
@@ -80,6 +87,12 @@ pub fn my_func() -> Result<()> {
         flashcard_system.tick(&sk, &ctx, (&mut flash_cards_data, &mut guess, &mut wrapper)).unwrap();
         index = wrapper.0;
         guess = None;
+        save_inc += 1;
+        if save_inc == 10000 {
+            config_file.saber_offsets = saber_offsets.clone();
+            //config_file.set().unwrap();
+            save_inc = 0;
+        }
     }, |_| {});
     Ok(())
 }

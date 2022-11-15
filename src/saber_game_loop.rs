@@ -8,6 +8,7 @@ use stereokit::high_level::math_traits::{MatrixContainer, MatrixTrait, RotationT
 use stereokit::input::Handed::{Left, Right};
 use stereokit::shader::Shader;
 use anyhow::Result;
+use serde::{Deserialize, Serialize};
 use stereokit::high_level::quat_from_angles;
 use stereokit::input::Handed;
 use crate::{QuizSaberStageType, quiz_saber_stage};
@@ -45,6 +46,7 @@ impl SkGameLoop<(&[u8], &[u8]), (&mut QuizSaberStage, &mut SaberOffsets)> for Sa
     }
 }
 
+#[derive(Serialize, Deserialize, Clone)]
 pub struct SaberOffsets {
     pub offset_right_hand: MatrixContainer,
     pub offset_left_hand: MatrixContainer,
@@ -63,9 +65,5 @@ impl Default for SaberOffsets {
             offset_right_hand: MatrixContainer::new(Vec3::new(-0.45, 0.03, -0.035), Vec3::new(0.0, 0.0, 90.0), Vec3::new(1.0, 1.0, 1.0)),
             offset_left_hand: MatrixContainer::new(Vec3::new(0.45, 0.03, 0.035), Vec3::new(0.0, 0.0, -90.0), Vec3::new(1.0, 1.0, 1.0))
         }
-        // Self {
-        //     offset_right_hand: MatrixContainer::new(Vec3::new(-0.45, 0.03, -0.035), Vec3:new(0.0, 0.0, 90.0), Vec3::new(1.0, 1.0, 1.0).into()),
-        //     offset_left_hand: Mat4::from_rotation_translation(quat_from_angles(0.0, 0.0, -90.0), [0.45, 0.03, 0.035].into()),
-        // }
     }
 }

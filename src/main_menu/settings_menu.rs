@@ -1,3 +1,4 @@
+use glam::Vec3;
 use stereokit::high_level::model::Model;
 use stereokit::lifecycle::DrawContext;
 use stereokit::StereoKit;
@@ -39,7 +40,6 @@ impl SkGameLoop<(), (&WindowContext, &mut MainMenuStage, &mut SaberOffsets)> for
         ui.text_style(new_ui_text_style(sk, 0.05),  |ui| {
             ui.text("Settings Menu", TextAlign::TopCenter);
             ui.text_style(new_ui_text_style(sk, 0.03),  |ui| {
-                // ui.slider("slider_test", &mut self.slider_val, 0.0, 10.0, 0.1, 0.1, ConfirmMethod::Push);
                 self.right_saber_header.place(ui, |ui| {
                     ui.space_sameline(0.05);
                     self.right_saber_pos_header.place(ui, |ui| {
@@ -76,6 +76,8 @@ impl SkGameLoop<(), (&WindowContext, &mut MainMenuStage, &mut SaberOffsets)> for
             }
             ui.toggle("Show Sabers", &mut self.enable_sabers);
         });
+        saber_offsets.offset_right_hand.scale = Vec3::new(scale_right, scale_right, scale_right);
+        saber_offsets.offset_left_hand.scale = Vec3::new(scale_right, scale_right, scale_right);
         saber_offsets.offset_left_hand.sync_matrix();
         saber_offsets.offset_right_hand.sync_matrix();
         Ok(())

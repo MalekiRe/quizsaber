@@ -13,18 +13,18 @@ serde_json = "1.0.87"
 #rusqlite = "0.28.0"
 stereokit = {path = "../../IdeaProjects/stereokit-rs2", features = ["high-level"]}
 #stereokit = "0.7.0"
-glam = {version = "0.22.0", features = ["mint", "num-traits"]}
+glam = {version = "0.22.0", features = ["mint", "num-traits", "serde"]}
 prisma = "0.1.1"
 anyhow = "1.0.66"
 rand = {version = "0.8.5", features = ["std", "alloc"]}
 mint = {version = "0.5.1"}
 spaced-rs = {path = "../../IdeaProjects/spaced-rs"}
 random-number = "0.1.8"
-#cgmath = {version = "0.18.0", features = ["mint"]}
-#collision = "0.20.1"
+serde = "1.0.147"
 
 [target.'cfg(target_os = "android")'.dependencies]
-ndk-glue = {version = "0.6.2", features = ["logger", "android_logger"]}
+ndk-glue = {version = "0.7.0", features = ["logger", "android_logger"]}
+ndk = "0.7.0"
 
 [package.metadata.android]
 apk_label = "Quiz Saber"
